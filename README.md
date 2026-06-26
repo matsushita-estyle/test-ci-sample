@@ -43,6 +43,7 @@ backend/app/api/routes/
 # フロントエンド
 cd frontend
 npm install
+npx playwright install chromium  # E2E テスト用ブラウザ（初回のみ）
 
 # バックエンド
 cd ..\backend
