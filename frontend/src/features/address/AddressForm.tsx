@@ -19,7 +19,7 @@ export function AddressForm({ onComplete }: Props) {
   const onSubmit = async (data: AddressFormData) => {
     const res = await submitAddress(data);
     if (res.valid) {
-      onComplete(data);
+      onComplete(res.address);
     } else {
       for (const e of res.errors) {
         setError(e.field as keyof AddressFormData, { message: e.message });
