@@ -1,56 +1,29 @@
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { submitAddress } from "./api";
 import { FormField } from "./FormField";
-import type { AddressFormData, FieldError } from "./validation";
-import { validateAddress } from "./validation";
+import { type AddressFormData, addressSchema } from "./validation";
 
 type Props = {
   onComplete: (address: AddressFormData) => void;
 };
 
-const INITIAL: AddressFormData = {
-  postalCode: "",
-  prefecture: "",
-  city: "",
-  streetAddress: "",
-  buildingName: "",
-};
-
 export function AddressForm({ onComplete }: Props) {
-  const [form, setForm] = useState<AddressFormData>(INITIAL);
-  const [errors, setErrors] = useState<FieldError[]>([]);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<AddressFormData>({ resolver: zodResolver(addressSchema) });
 
-  const errorFor = (field: keyof AddressFormData) =>
-    errors.find((e) => e.field === field)?.message;
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const clientErrors = validateAddress(form);
-    if (clientErrors.length > 0) {
-      setErrors(clientErrors);
-      return;
-    }
-    setErrors([]);
-    setSubmitting(true);
-    try {
-      const res = await submitAddress(form);
-      if (res.valid) {
-        onComplete(form);
-      } else {
-        setErrors(
-          res.errors.map((e) => ({
-            field: e.field as keyof AddressFormData,
-            message: e.message,
-          })),
-        );
+  const onSubmit = async (data: AddressFormData) => {
+    const res = await submitAddress(data);
+    if (res.valid) {
+      onComplete(data);
+    } else {
+      for (const e of res.errors) {
+        setError(e.field as keyof AddressFormData, { message: e.message });
       }
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -66,52 +39,47 @@ export function AddressForm({ onComplete }: Props) {
       </div>
 
       <div className="card-right">
-        <form onSubmit={handleSubmit} aria-label="住所入力フォーム">
+        <form onSubmit={handleSubmit(onSubmit)} aria-label="住所入力フォーム">
           <div className="form-grid">
             <FormField
               id="postalCode"
               label="郵便番号"
-              value={form.postalCode}
-              onChange={handleChange}
+              registration={register("postalCode")}
               placeholder="123-4567"
-              error={errorFor("postalCode")}
+              error={errors.postalCode?.message}
             />
             <FormField
               id="prefecture"
               label="都道府県"
-              value={form.prefecture}
-              onChange={handleChange}
+              registration={register("prefecture")}
               placeholder="東京都"
-              error={errorFor("prefecture")}
+              error={errors.prefecture?.message}
             />
             <FormField
               id="city"
               label="市区町村"
-              value={form.city}
-              onChange={handleChange}
+              registration={register("city")}
               placeholder="渋谷区"
-              error={errorFor("city")}
+              error={errors.city?.message}
             />
             <FormField
               id="streetAddress"
               label="番地"
-              value={form.streetAddress}
-              onChange={handleChange}
+              registration={register("streetAddress")}
               placeholder="1-2-3"
-              error={errorFor("streetAddress")}
+              error={errors.streetAddress?.message}
             />
             <FormField
               id="buildingName"
               label="建物名（任意）"
-              value={form.buildingName}
-              onChange={handleChange}
+              registration={register("buildingName")}
               placeholder="○○ビル 3F"
               fullWidth
             />
           </div>
 
-          <button type="submit" className="submit-btn" disabled={submitting}>
-            {submitting ? "送信中..." : "送信する"}
+          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+            {isSubmitting ? "送信中..." : "送信する"}
           </button>
         </form>
       </div>

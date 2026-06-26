@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { type AddressFormData, validateAddress } from "./validation";
+import { addressSchema } from "./validation";
 
-const validData: AddressFormData = {
+const validData = {
   postalCode: "123-4567",
   prefecture: "東京都",
   city: "渋谷区",
@@ -9,36 +9,64 @@ const validData: AddressFormData = {
   buildingName: "",
 };
 
-describe("validateAddress", () => {
-  it("正しい住所ではエラーなし", () => {
-    expect(validateAddress(validData)).toEqual([]);
+describe("addressSchema", () => {
+  it("正しい住所はパスする", () => {
+    expect(addressSchema.safeParse(validData).success).toBe(true);
   });
 
   it.each(["1234567", "123-456", "abc-defg", ""])(
     "郵便番号が不正な場合エラー: %s",
     (postalCode) => {
-      const errors = validateAddress({ ...validData, postalCode });
-      expect(errors.map((e) => e.field)).toContain("postalCode");
+      const result = addressSchema.safeParse({ ...validData, postalCode });
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.flatten().fieldErrors.postalCode).toBeDefined();
+      }
     },
   );
 
   it("都道府県が空の場合エラー", () => {
-    const errors = validateAddress({ ...validData, prefecture: "" });
-    expect(errors.map((e) => e.field)).toContain("prefecture");
+    const result = addressSchema.safeParse({ ...validData, prefecture: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.prefecture).toBeDefined();
+    }
   });
 
   it("市区町村が空の場合エラー", () => {
-    const errors = validateAddress({ ...validData, city: "" });
-    expect(errors.map((e) => e.field)).toContain("city");
+    const result = addressSchema.safeParse({ ...validData, city: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.city).toBeDefined();
+    }
   });
 
   it("番地が空の場合エラー", () => {
-    const errors = validateAddress({ ...validData, streetAddress: "" });
-    expect(errors.map((e) => e.field)).toContain("streetAddress");
+    const result = addressSchema.safeParse({ ...validData, streetAddress: "" });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.flatten().fieldErrors.streetAddress).toBeDefined();
+    }
   });
 
-  it("複数のエラーをまとめて返す", () => {
-    const errors = validateAddress({ ...validData, postalCode: "bad", prefecture: "", city: "" });
-    expect(errors).toHaveLength(3);
+  it("複数フィールドのエラーをまとめて返す", () => {
+    const result = addressSchema.safeParse({
+      ...validData,
+      postalCode: "bad",
+      prefecture: "",
+      city: "",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+      expect(fieldErrors.postalCode).toBeDefined();
+      expect(fieldErrors.prefecture).toBeDefined();
+      expect(fieldErrors.city).toBeDefined();
+    }
+  });
+
+  it("建物名は省略可能", () => {
+    const { buildingName: _, ...withoutBuilding } = validData;
+    expect(addressSchema.safeParse(withoutBuilding).success).toBe(true);
   });
 });
