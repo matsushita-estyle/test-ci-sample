@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { addressSchema } from "./validation";
 
 const validData = {
@@ -20,7 +21,7 @@ describe("addressSchema", () => {
       const result = addressSchema.safeParse({ ...validData, postalCode });
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.flatten().fieldErrors.postalCode).toBeDefined();
+        expect(z.flattenError(result.error).fieldErrors.postalCode).toBeDefined();
       }
     },
   );
@@ -29,7 +30,7 @@ describe("addressSchema", () => {
     const result = addressSchema.safeParse({ ...validData, prefecture: "" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.flatten().fieldErrors.prefecture).toBeDefined();
+      expect(z.flattenError(result.error).fieldErrors.prefecture).toBeDefined();
     }
   });
 
@@ -37,7 +38,7 @@ describe("addressSchema", () => {
     const result = addressSchema.safeParse({ ...validData, city: "" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.flatten().fieldErrors.city).toBeDefined();
+      expect(z.flattenError(result.error).fieldErrors.city).toBeDefined();
     }
   });
 
@@ -45,7 +46,7 @@ describe("addressSchema", () => {
     const result = addressSchema.safeParse({ ...validData, streetAddress: "" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.flatten().fieldErrors.streetAddress).toBeDefined();
+      expect(z.flattenError(result.error).fieldErrors.streetAddress).toBeDefined();
     }
   });
 
@@ -58,7 +59,7 @@ describe("addressSchema", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      const fieldErrors = result.error.flatten().fieldErrors;
+      const fieldErrors = z.flattenError(result.error).fieldErrors;
       expect(fieldErrors.postalCode).toBeDefined();
       expect(fieldErrors.prefecture).toBeDefined();
       expect(fieldErrors.city).toBeDefined();
