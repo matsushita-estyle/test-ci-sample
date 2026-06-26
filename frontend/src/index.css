@@ -37,9 +37,9 @@ body {
   background: var(--card);
   border: 1px solid var(--rule);
   border-radius: 8px;
-  padding: 40px 44px;
+  padding: 48px 56px;
   width: 100%;
-  max-width: 480px;
+  max-width: 640px;
   box-shadow: 0 2px 12px rgba(28, 26, 22, 0.06);
 }
 
