@@ -418,7 +418,7 @@
   }
   .pipeline-job .step {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     font-size: 13px;
     color: var(--ink-2);
@@ -429,7 +429,10 @@
     height: 6px;
     border-radius: 50%;
     background: var(--rule-strong);
+    margin-top: 7px;
   }
+  .pipeline-job .step-body { display: flex; flex-direction: column; gap: 2px; }
+  .pipeline-job .step-desc { font-size: 11.5px; color: var(--mute); line-height: 1.4; }
   .pipeline-job.job-be .step::before { background: var(--py); }
   .pipeline-job.job-fe .step::before { background: var(--ts); }
   .pipeline-job.job-e2e .step::before { background: var(--accent); }
@@ -555,13 +558,6 @@
 <aside class="sidebar">
   <div class="brand">CI サンプル</div>
   <div class="brand-sub">TypeScript × Python</div>
-  <nav class="page-switch">
-    <div class="label">Pages</div>
-    <a href="#overview" class="active" onclick="setActive(this)">概要</a>
-    <a href="#directory" onclick="setActive(this)">ディレクトリ構成</a>
-    <a href="#ci" onclick="setActive(this)">CI パイプライン</a>
-    <a href="#testing" onclick="setActive(this)">テスト設計</a>
-  </nav>
   <nav class="toc">
     <div class="label">Contents</div>
     <a href="#overview"><span class="num">01</span><span>概要</span></a>
@@ -734,10 +730,8 @@
     <div class="prose">
       <p>
         GitHub Actions で <strong>backend・frontend・e2e の 3 ジョブを並列実行</strong>します。
-        それぞれ独立しているため、どれか 1 つが失敗しても残りは続行され、問題箇所がすぐ特定できます。
       </p>
       <p>
-        3 ジョブとも <strong>PR 時のみトリガー</strong>します。マージ前に問題を検知するのが目的で、push（main）での再実行は不要と判断しています。
       </p>
     </div>
 
@@ -746,79 +740,36 @@
         <div class="job-label">Job 1</div>
         <div class="job-name">backend</div>
         <div class="steps">
-          <div class="step">uv sync --frozen</div>
-          <div class="step">ruff check（lint）</div>
-          <div class="step">ruff format --check</div>
-          <div class="step">mypy（型チェック）</div>
-          <div class="step">pytest（ユニットテスト）</div>
+          <div class="step"><div class="step-body"><span>uv sync --frozen</span><span class="step-desc">ロックファイル通りに依存パッケージをインストール</span></div></div>
+          <div class="step"><div class="step-body"><span>ruff check</span><span class="step-desc">未使用 import・命名規則など静的解析</span></div></div>
+          <div class="step"><div class="step-body"><span>ruff format --check</span><span class="step-desc">コードフォーマットの崩れを検出</span></div></div>
+          <div class="step"><div class="step-body"><span>mypy</span><span class="step-desc">型アノテーションの整合性チェック</span></div></div>
+          <div class="step"><div class="step-body"><span>pytest</span><span class="step-desc">純粋関数のユニットテストを実行</span></div></div>
         </div>
-        <div class="job-trigger">Python 3.13 · uv 管理</div>
       </div>
       <div class="pipeline-job job-fe">
         <div class="job-label">Job 2</div>
         <div class="job-name">frontend</div>
         <div class="steps">
-          <div class="step">npm ci</div>
-          <div class="step">tsc --noEmit（型チェック）</div>
-          <div class="step">biome check（lint）</div>
-          <div class="step">vite build</div>
-          <div class="step">vitest run（ユニットテスト）</div>
+          <div class="step"><div class="step-body"><span>npm ci</span><span class="step-desc">ロックファイル通りに依存パッケージをインストール</span></div></div>
+          <div class="step"><div class="step-body"><span>tsc --noEmit</span><span class="step-desc">TypeScript の型エラーを検出</span></div></div>
+          <div class="step"><div class="step-body"><span>biome check</span><span class="step-desc">lint・フォーマット崩れを検出</span></div></div>
+          <div class="step"><div class="step-body"><span>vite build</span><span class="step-desc">本番ビルドが通ることを確認</span></div></div>
+          <div class="step"><div class="step-body"><span>vitest run</span><span class="step-desc">純粋関数のユニットテストを実行</span></div></div>
         </div>
-        <div class="job-trigger">Node.js 22 · Vite 6 · Vitest 3</div>
       </div>
       <div class="pipeline-job job-e2e">
         <div class="job-label">Job 3</div>
         <div class="job-name">e2e</div>
         <div class="steps">
-          <div class="step">uvicorn 起動（BE）</div>
-          <div class="step">vite preview 起動（FE）</div>
-          <div class="step">wait-on で疎通確認</div>
-          <div class="step">playwright test</div>
+          <div class="step"><div class="step-body"><span>uvicorn 起動</span><span class="step-desc">FastAPI をバックグラウンドで起動</span></div></div>
+          <div class="step"><div class="step-body"><span>vite preview 起動</span><span class="step-desc">ビルド済みフロントをバックグラウンドで配信</span></div></div>
+          <div class="step"><div class="step-body"><span>wait-on</span><span class="step-desc">BE・FE の疎通が取れるまで待機</span></div></div>
+          <div class="step"><div class="step-body"><span>playwright test</span><span class="step-desc">実ブラウザで画面操作シナリオを実行</span></div></div>
         </div>
-        <div class="job-trigger">Chromium · PR 時のみ</div>
       </div>
     </div>
 
-    <div class="prose" style="margin-top: 32px;">
-      <h3>主要な設定ポイント</h3>
-      <ul>
-        <li><code>astral-sh/setup-uv@v8.2.0</code> で uv をセットアップ（<code>uv sync --frozen</code> でロックファイル通りにインストール）</li>
-        <li><code>actions/cache@v5</code> で <code>node_modules</code> と uv の仮想環境をキャッシュ</li>
-        <li>E2E はバックエンドを <code>nohup uvicorn</code>、フロントを <code>nohup vite preview</code> でバックグラウンド起動し、<code>npx wait-on</code> で疎通を待つ</li>
-        <li>全アクションを <code>v5</code> に統一（Node.js 20 非推奨警告を回避）</li>
-      </ul>
-    </div>
-
-    <pre><span class="c"># .github/workflows/ci.yml の骨格</span>
-on:
-  push:
-    branches: [main]
-  pull_request:
-
-jobs:
-  backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: <span class="s">actions/checkout@v5</span>
-      - uses: <span class="s">astral-sh/setup-uv@v8.2.0</span>
-      - run: <span class="fn">uv sync --frozen</span>
-      - run: <span class="fn">uv run ruff check .</span>
-      - run: <span class="fn">uv run mypy app</span>
-      - run: <span class="fn">uv run pytest</span>
-
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: <span class="s">actions/checkout@v5</span>
-      - uses: <span class="s">actions/setup-node@v5</span>
-        with: { node-version: "22" }
-      - run: <span class="fn">npm ci && npx tsc --noEmit && npm run build && npx vitest run</span>
-
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - <span class="c"># BE と FE をバックグラウンドで起動して Playwright を実行</span>
-      - run: <span class="fn">npx playwright test</span></pre>
   </div>
 </section>
 
@@ -832,57 +783,41 @@ jobs:
       <div class="title-block">
         <div class="kicker">Chapter Four</div>
         <h2>テスト設計</h2>
-        <p class="lede">VB.net との比較で見る「テストしやすいコード」の原則。</p>
+        <p class="lede">ロジックを UI・HTTP 層から切り離すことで、自動テストが書けるようになる。</p>
       </div>
     </div>
 
     <div class="prose">
       <p>
-        VB.net プロジェクトでよく見られる課題は、<strong>ビジネスロジックが UI や Excel COM に直接依存していること</strong>です。
-        この構造ではロジック単体でのテストが書けず、「動かして目で確認する」しかなくなります。
+        バリデーションロジックを <code>validation.ts</code> / <code>validation.py</code> に純粋関数として切り出し、
+        UI・HTTP 層から分離します。入力を受け取り結果を返すだけの関数なので、
+        フレームワークを起動せずに直接テストでき、AI による生成・修正もしやすくなります。
       </p>
     </div>
 
-    <table class="contrast-table">
-      <thead>
-        <tr>
-          <th>観点</th>
-          <th>VB.net（従来型）</th>
-          <th>このサンプル（TypeScript × Python）</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>ロジックの場所</strong></td>
-          <td class="bad">Form クラスや Excel シート関数に直接記述</td>
-          <td class="good"><code>validation.ts</code> / <code>validation.py</code> に分離</td>
-        </tr>
-        <tr>
-          <td><strong>テストの方法</strong></td>
-          <td class="bad">画面を操作して目視確認（自動化困難）</td>
-          <td class="good">純粋関数を直接 call してアサート</td>
-        </tr>
-        <tr>
-          <td><strong>依存</strong></td>
-          <td class="bad">UI フレームワーク・Excel COM・DB が必要</td>
-          <td class="good">フレームワーク依存ゼロ。入力 → 出力のみ</td>
-        </tr>
-        <tr>
-          <td><strong>AI との相性</strong></td>
-          <td class="bad">副作用だらけで AI が生成しにくい</td>
-          <td class="good">純粋関数なので AI が生成・修正しやすい</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="callout">
-      <strong>原則：</strong>
-      「テストできない」ではなく「テストしやすい設計になっていない」。
-      ロジックを純粋関数として切り出すだけで、言語を問わず自動テストが書けるようになります。
-    </div>
 
     <div class="prose">
       <h3>Python 側のテスト例</h3>
+      <p>
+        テスト対象は <code>domain/validation.py</code> の純粋関数です。FastAPI・DB に依存せず、入力を受け取りエラーリストを返すだけです。
+      </p>
+    </div>
+
+    <pre><span class="c"># app/domain/validation.py</span>
+<span class="k">def</span> <span class="fn">validate_address</span>(address: AddressRequest) -> list[ValidationError]:
+    errors: list[ValidationError] = []
+    <span class="k">if not</span> POSTAL_CODE_PATTERN.match(address.postal_code):
+        errors.append(ValidationError(field=<span class="s">"postal_code"</span>, message=<span class="s">"郵便番号は 000-0000 の形式で入力してください"</span>))
+    <span class="k">if not</span> address.prefecture.strip():
+        errors.append(ValidationError(field=<span class="s">"prefecture"</span>, message=<span class="s">"都道府県を入力してください"</span>))
+    <span class="c"># ...</span>
+    <span class="k">return</span> errors</pre>
+
+    <div class="prose">
+      <p>
+        この関数に対して <code>pytest</code> で直接テストを書きます。
+        <code>parametrize</code> で複数の不正値をまとめて検証できます。
+      </p>
     </div>
 
     <pre><span class="c"># tests/test_validation.py</span>
@@ -907,6 +842,26 @@ jobs:
 
     <div class="prose">
       <h3>TypeScript 側のテスト例</h3>
+      <p>
+        テスト対象は <code>validation.ts</code> の Zod スキーマです。型定義とバリデーションルールを一箇所にまとめています。
+      </p>
+    </div>
+
+    <pre><span class="c">// src/features/address/validation.ts</span>
+<span class="k">export const</span> addressSchema = z.object({
+  postalCode: z.string().<span class="fn">regex</span>(<span class="s">/^\d{3}-\d{4}$/</span>, <span class="s">"郵便番号は 000-0000 の形式で入力してください"</span>),
+  prefecture: z.string().<span class="fn">min</span>(<span class="s">1</span>, <span class="s">"都道府県を入力してください"</span>),
+  city: z.string().<span class="fn">min</span>(<span class="s">1</span>, <span class="s">"市区町村を入力してください"</span>),
+  streetAddress: z.string().<span class="fn">min</span>(<span class="s">1</span>, <span class="s">"番地を入力してください"</span>),
+  buildingName: z.string().<span class="fn">optional</span>(),
+})
+
+<span class="k">export type</span> AddressFormData = z.<span class="fn">infer</span>&lt;<span class="k">typeof</span> addressSchema&gt;</pre>
+
+    <div class="prose">
+      <p>
+        このスキーマに対して <code>safeParse()</code> を直接 call してテストします。React も Vite も不要です。
+      </p>
     </div>
 
     <pre><span class="c">// validation.test.ts</span>
@@ -943,11 +898,6 @@ jobs:
 </div>
 
 <script>
-  function setActive(el) {
-    document.querySelectorAll('nav.page-switch a').forEach(a => a.classList.remove('active'));
-    el.classList.add('active');
-  }
-
   // TOC のスクロール追従
   const sections = document.querySelectorAll('section[id]');
   const tocLinks = document.querySelectorAll('nav.toc a');
