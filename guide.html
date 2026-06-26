@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CI サンプル — TypeScript × Python ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper:        #f8f5ee;
+    --paper-2:      #f1ece1;
+    --card:         #fffdf7;
+    --ink:          #1c1a16;
+    --ink-2:        #3d3933;
+    --mute:         #76705f;
+    --soft:         #a39c89;
+    --rule:         #ddd5c2;
+    --rule-strong:  #c4bba2;
+    --accent:       #b34a26;
+    --accent-deep:  #8a3617;
+    --accent-soft:  #f1d9c8;
+    --accent-tint:  #fbede2;
+    --ts:           #3178c6;
+    --ts-soft:      #dae6f5;
+    --ts-tint:      #eef4fb;
+    --py:           #4d7a4a;
+    --py-soft:      #d5e2cf;
+    --py-tint:      #eaf1e6;
+    --serif: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
+    --sans:  "Inter", "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.78;
+    letter-spacing: 0.005em;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s; }
+  a:hover { border-bottom-color: var(--accent); }
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--accent-deep);
+    font-weight: 500;
+  }
+  strong { font-weight: 700; color: var(--ink); }
+  em { font-style: normal; font-weight: 700; }
+
+  /* ── shell ── */
+  .shell { display: flex; min-height: 100vh; }
+
+  aside.sidebar {
+    flex: 0 0 240px;
+    width: 240px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    padding: 40px 24px 32px 32px;
+    border-right: 1px solid var(--rule);
+    background: rgba(248,245,238,0.6);
+    backdrop-filter: blur(8px);
+  }
+  .brand {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+  .brand-sub {
+    font-size: 10.5px;
+    color: var(--soft);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 32px;
+  }
+  nav.page-switch {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+  nav.page-switch .label {
+    font-size: 10px;
+    color: var(--soft);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  nav.page-switch a {
+    display: block;
+    padding: 8px 10px;
+    border-left: 2px solid transparent;
+    border-bottom: none;
+    color: var(--mute);
+    font-size: 13px;
+    line-height: 1.4;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  nav.page-switch a:hover { color: var(--ink); background: rgba(255,253,247,0.7); }
+  nav.page-switch a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--accent-tint);
+    font-weight: 600;
+  }
+  nav.toc { display: flex; flex-direction: column; gap: 1px; }
+  nav.toc .label {
+    font-size: 10px;
+    color: var(--soft);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  nav.toc a {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 8px 10px;
+    border-left: 2px solid transparent;
+    border-bottom: none;
+    color: var(--mute);
+    font-size: 13px;
+    line-height: 1.4;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  nav.toc a .num {
+    font-family: var(--serif);
+    font-size: 11px;
+    color: var(--soft);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    flex: 0 0 18px;
+  }
+  nav.toc a:hover { color: var(--ink); background: rgba(255,253,247,0.7); }
+  nav.toc a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--accent-tint);
+    font-weight: 600;
+  }
+  nav.toc a.active .num { color: var(--accent); }
+
+  main.frame { flex: 1; min-width: 0; }
+  .col { max-width: 960px; margin: 0 auto; padding: 0 56px; }
+  @media (max-width: 880px) { .col { padding: 0 28px; } }
+
+  /* ── hero ── */
+  header.hero {
+    padding: 88px 0 72px;
+    border-bottom: 1px solid var(--rule);
+    background:
+      radial-gradient(ellipse 60% 80% at 90% 0%, rgba(179,74,38,0.06), transparent 60%),
+      radial-gradient(ellipse 50% 70% at 0% 100%, rgba(49,120,198,0.04), transparent 60%),
+      var(--paper);
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+  .eyebrow::before, .eyebrow::after {
+    content: "";
+    height: 1px;
+    background: var(--accent);
+    flex: 0 0 36px;
+  }
+  .eyebrow::after { flex: 1 1 auto; opacity: 0.3; }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: clamp(48px, 7vw, 88px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    margin: 0 0 28px;
+  }
+  .hero h1 .accent { color: var(--accent); }
+  .hero .deck {
+    font-family: var(--serif);
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--ink-2);
+    max-width: 680px;
+    margin: 0 0 36px;
+  }
+  .hero .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+  }
+  .hero .meta .item dt {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--soft);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .hero .meta .item dd { margin: 0; color: var(--ink); font-weight: 500; font-size: 13px; }
+
+  /* ── section ── */
+  section { padding: 88px 0 32px; border-top: 1px solid var(--rule); }
+  section:first-of-type { border-top: none; }
+
+  .chap-head {
+    display: grid;
+    grid-template-columns: minmax(160px, 200px) 1fr;
+    gap: 48px;
+    align-items: start;
+    margin-bottom: 52px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .chap-head .num {
+    font-family: var(--serif);
+    font-size: 88px;
+    font-weight: 400;
+    color: var(--accent);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+  }
+  .chap-head .num small {
+    display: block;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--soft);
+    font-weight: 700;
+    margin-top: 12px;
+    text-transform: uppercase;
+  }
+  .chap-head .title-block { padding-top: 18px; }
+  .chap-head .kicker {
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--mute);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .chap-head h2 {
+    font-family: var(--serif);
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 10px;
+  }
+  .chap-head .lede {
+    font-size: 15px;
+    color: var(--mute);
+    line-height: 1.75;
+    max-width: 520px;
+    margin: 0;
+  }
+  @media (max-width: 760px) {
+    .chap-head { grid-template-columns: 1fr; gap: 12px; }
+  }
+
+  /* ── prose ── */
+  .prose { max-width: 680px; }
+  .prose p { margin: 0 0 1.4em; }
+  .prose h3 {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 2em 0 0.6em;
+    color: var(--ink);
+  }
+  .prose ul { padding-left: 1.4em; margin: 0 0 1.4em; }
+  .prose li { margin-bottom: 0.4em; }
+
+  /* ── badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    vertical-align: middle;
+  }
+  .badge-ts { background: var(--ts-soft); color: var(--ts); }
+  .badge-py { background: var(--py-soft); color: var(--py); }
+  .badge-ci { background: var(--accent-tint); color: var(--accent); }
+
+  /* ── file tree ── */
+  .filetree {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+    white-space: pre;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin: 32px 0;
+    overflow-x: auto;
+  }
+  .filetree .dir { color: var(--ink); font-weight: 500; }
+  .filetree .file { color: var(--ink-2); }
+  .filetree .note {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--mute);
+    margin-left: 12px;
+    white-space: normal;
+  }
+  .filetree .ts { color: var(--ts); }
+  .filetree .py { color: var(--py); }
+  .filetree .ci { color: var(--accent); }
+  .filetree .hl {
+    background: var(--accent-tint);
+    border-radius: 3px;
+    padding: 0 4px;
+    margin: 0 -4px;
+  }
+
+  /* ── role table ── */
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .role-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 22px 24px;
+  }
+  .role-card .path {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--mute);
+    margin-bottom: 8px;
+  }
+  .role-card .role-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .role-card .role-desc {
+    font-size: 13px;
+    color: var(--mute);
+    line-height: 1.65;
+  }
+
+  /* ── ci pipeline ── */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 32px 0;
+  }
+  @media (max-width: 720px) { .pipeline { grid-template-columns: 1fr; } }
+  .pipeline-job {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .pipeline-job .job-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--soft);
+    margin-bottom: 10px;
+  }
+  .pipeline-job .job-name {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .pipeline-job .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pipeline-job .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .pipeline-job .step::before {
+    content: "";
+    flex: 0 0 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rule-strong);
+  }
+  .pipeline-job.job-be .step::before { background: var(--py); }
+  .pipeline-job.job-fe .step::before { background: var(--ts); }
+  .pipeline-job.job-e2e .step::before { background: var(--accent); }
+  .pipeline-job .job-trigger {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font-size: 11.5px;
+    color: var(--mute);
+  }
+
+  /* ── flow ── */
+  .flow-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0;
+    margin: 28px 0;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .flow-row .flow-label {
+    background: var(--paper-2);
+    border-right: 1px solid var(--rule);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mute);
+    letter-spacing: 0.08em;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .flow-row .flow-items {
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .flow-chip {
+    background: var(--paper-2);
+    border: 1px solid var(--rule-strong);
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .flow-arrow {
+    color: var(--rule-strong);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* ── contrast table ── */
+  .contrast-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 28px 0;
+    font-size: 14px;
+  }
+  .contrast-table th {
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mute);
+    font-weight: 700;
+  }
+  .contrast-table td {
+    padding: 12px 16px;
+    border: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .contrast-table tr:nth-child(even) td { background: rgba(255,253,247,0.6); }
+  .contrast-table .bad { color: #a04020; }
+  .contrast-table .good { color: var(--py); }
+
+  /* ── callout ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-tint);
+    border-radius: 0 6px 6px 0;
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-size: 14px;
+    color: var(--ink-2);
+    line-height: 1.7;
+  }
+  .callout strong { color: var(--accent); }
+
+  /* ── codeblock ── */
+  pre {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    overflow-x: auto;
+    color: var(--ink-2);
+  }
+  pre .c { color: var(--soft); }
+  pre .k { color: var(--ts); font-weight: 500; }
+  pre .s { color: var(--py); }
+  pre .fn { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<aside class="sidebar">
+  <div class="brand">CI サンプル</div>
+  <div class="brand-sub">TypeScript × Python</div>
+  <nav class="page-switch">
+    <div class="label">Pages</div>
+    <a href="#overview" class="active" onclick="setActive(this)">概要</a>
+    <a href="#directory" onclick="setActive(this)">ディレクトリ構成</a>
+    <a href="#ci" onclick="setActive(this)">CI パイプライン</a>
+    <a href="#testing" onclick="setActive(this)">テスト設計</a>
+  </nav>
+  <nav class="toc">
+    <div class="label">Contents</div>
+    <a href="#overview"><span class="num">01</span><span>概要</span></a>
+    <a href="#directory"><span class="num">02</span><span>ディレクトリ</span></a>
+    <a href="#ci"><span class="num">03</span><span>CI パイプライン</span></a>
+    <a href="#testing"><span class="num">04</span><span>テスト設計</span></a>
+  </nav>
+</aside>
+
+<main class="frame">
+
+<!-- ── Hero ── -->
+<header class="hero">
+  <div class="col">
+    <div class="eyebrow">AI 駆動開発 CI サンプル</div>
+    <h1>TypeScript<br />× <span class="accent">Python</span></h1>
+    <p class="deck">VB.net プロジェクトへ向けた<br />AI 駆動開発スタイルの CI 実例</p>
+    <div class="meta">
+      <div class="item"><dt>Frontend</dt><dd>React 19 + Vite 6 + Zod + react-hook-form</dd></div>
+      <div class="item"><dt>Backend</dt><dd>FastAPI + Pydantic v2 + uv</dd></div>
+      <div class="item"><dt>CI</dt><dd>GitHub Actions（並列 3 ジョブ）</dd></div>
+      <div class="item"><dt>E2E</dt><dd>Playwright（PR 時に実行）</dd></div>
+    </div>
+  </div>
+</header>
+
+<!-- ── 01 Overview ── -->
+<section id="overview">
+  <div class="col">
+    <div class="chap-head">
+      <div>
+        <div class="num">01<small>Overview</small></div>
+      </div>
+      <div class="title-block">
+        <div class="kicker">Chapter One</div>
+        <h2>概要</h2>
+        <p class="lede">このサンプルが示すこと、なぜ TypeScript × Python なのか。</p>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>
+        このリポジトリは、<strong>TypeScript + Python の組み合わせで AI 駆動開発を行う場合の CI の在り方</strong>を示すサンプルです。
+        シンプルな住所入力フォーム（入力画面 → 完了画面の 2 画面）を題材にしています。
+      </p>
+
+      <h3>このサンプルで確認できること</h3>
+      <ul>
+        <li><strong>フロントエンド</strong>：Zod によるスキーマ定義、react-hook-form による状態管理、Vitest による純粋関数テスト</li>
+        <li><strong>バックエンド</strong>：FastAPI + Pydantic v2、uv によるパッケージ管理、pytest による純粋関数テスト</li>
+        <li><strong>CI</strong>：GitHub Actions で backend / frontend / e2e の 3 ジョブを並列実行</li>
+        <li><strong>E2E</strong>：Playwright で画面操作を自動化（PR 時にトリガー）</li>
+      </ul>
+
+    </div>
+
+    <!-- フロー概要 -->
+    <div style="margin-top: 40px;">
+      <div class="flow-row">
+        <div class="flow-label">ユーザー操作</div>
+        <div class="flow-items">
+          <span class="flow-chip">住所入力</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">送信ボタン</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">完了画面</span>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-label">フロント<br />バリデーション</div>
+        <div class="flow-items">
+          <span class="flow-chip">Zod safeParse</span>
+          <span class="flow-arrow">→</span>
+          <span style="display:flex;flex-direction:column;gap:6px;">
+            <span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute);">NG <span class="flow-arrow" style="font-size:14px;">→</span> <span class="flow-chip">エラー表示</span></span>
+            <span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute);">OK <span class="flow-arrow" style="font-size:14px;">→</span> <span class="flow-chip">POST /api/validate</span></span>
+          </span>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-label">バックエンド</div>
+        <div class="flow-items">
+          <span class="flow-chip">Pydantic 型チェック</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">validate_address()</span>
+          <span class="flow-arrow">→</span>
+          <span style="display:flex;flex-direction:column;gap:6px;">
+            <span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute);">NG <span class="flow-arrow" style="font-size:14px;">→</span> <span class="flow-chip">{ valid: false, errors }</span></span>
+            <span style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute);">OK <span class="flow-arrow" style="font-size:14px;">→</span> <span class="flow-chip">{ valid: true, address }</span></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 02 Directory ── -->
+<section id="directory">
+  <div class="col">
+    <div class="chap-head">
+      <div>
+        <div class="num">02<small>Structure</small></div>
+      </div>
+      <div class="title-block">
+        <div class="kicker">Chapter Two</div>
+        <h2>ディレクトリ構成</h2>
+        <p class="lede">frontend / backend / e2e の 3 領域に分かれたシンプルな構成。</p>
+      </div>
+    </div>
+
+    <div class="filetree">
+<span class="dir">ci-sample/</span>
+├── <span class="ci dir">.github/workflows/</span>
+│   └── <span class="ci file">ci.yml</span>              <span class="note">← GitHub Actions（3 ジョブ並列）</span>
+│
+├── <span class="py dir">backend/</span>
+│   ├── <span class="py file">pyproject.toml</span>       <span class="note">← uv 依存関係定義（Python 3.13）</span>
+│   ├── <span class="py file">uv.lock</span>
+│   └── <span class="py dir">app/</span>
+│       ├── <span class="py file">main.py</span>          <span class="note">← FastAPI アプリ・CORS 設定</span>
+│       ├── <span class="py file">models.py</span>        <span class="note">← Pydantic モデル定義</span>
+│       ├── <span class="py dir">domain/</span>
+│       │   └── <span class="py file hl">validation.py</span>   <span class="note">← 純粋関数（テスト対象）</span>
+│       ├── <span class="py dir">api/routes/</span>
+│       │   └── <span class="py file">validate.py</span>  <span class="note">← HTTP ルーター</span>
+│       └── <span class="py dir">tests/</span>
+│           └── <span class="py file">test_validation.py</span>
+│
+├── <span class="ts dir">frontend/</span>
+│   ├── <span class="ts file">package.json</span>         <span class="note">← Vite 6 / Vitest 3 / Biome</span>
+│   ├── <span class="ts file">vite.config.ts</span>
+│   ├── <span class="ts dir">e2e/</span>
+│   │   └── <span class="ts file">address-form.spec.ts</span>  <span class="note">← Playwright E2E</span>
+│   └── <span class="ts dir">src/features/address/</span>
+│       ├── <span class="ts file hl">validation.ts</span>    <span class="note">← 純粋関数（テスト対象）</span>
+│       ├── <span class="ts file">validation.test.ts</span>
+│       ├── <span class="ts file">AddressForm.tsx</span>
+│       ├── <span class="ts file">FormField.tsx</span>
+│       ├── <span class="ts file">CompletionScreen.tsx</span>
+│       └── <span class="ts file">api.ts</span>
+│
+└── <span class="file">guide.html</span>               <span class="note">← このドキュメント</span>
+    </div>
+
+    <div style="margin-top: 8px; margin-bottom: 40px;">
+      <p style="font-size: 13px; color: var(--mute);">
+        ハイライト（<span style="background:var(--accent-tint); border-radius:3px; padding:1px 6px; font-family:var(--mono); font-size:12px;">validation.py</span> /
+        <span style="background:var(--accent-tint); border-radius:3px; padding:1px 6px; font-family:var(--mono); font-size:12px;">validation.ts</span>）
+        のように、UI・HTTP 層から分離した純粋関数として定義することで、フレームワーク依存なしにテストできます。
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── 03 CI ── -->
+<section id="ci">
+  <div class="col">
+    <div class="chap-head">
+      <div>
+        <div class="num">03<small>Pipeline</small></div>
+      </div>
+      <div class="title-block">
+        <div class="kicker">Chapter Three</div>
+        <h2>CI パイプライン</h2>
+        <p class="lede">3 ジョブが並列で走り、全部グリーンになってはじめてマージできる。</p>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>
+        GitHub Actions で <strong>backend・frontend・e2e の 3 ジョブを並列実行</strong>します。
+        それぞれ独立しているため、どれか 1 つが失敗しても残りは続行され、問題箇所がすぐ特定できます。
+      </p>
+      <p>
+        3 ジョブとも <strong>PR 時のみトリガー</strong>します。マージ前に問題を検知するのが目的で、push（main）での再実行は不要と判断しています。
+      </p>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-job job-be">
+        <div class="job-label">Job 1</div>
+        <div class="job-name">backend</div>
+        <div class="steps">
+          <div class="step">uv sync --frozen</div>
+          <div class="step">ruff check（lint）</div>
+          <div class="step">ruff format --check</div>
+          <div class="step">mypy（型チェック）</div>
+          <div class="step">pytest（ユニットテスト）</div>
+        </div>
+        <div class="job-trigger">Python 3.13 · uv 管理</div>
+      </div>
+      <div class="pipeline-job job-fe">
+        <div class="job-label">Job 2</div>
+        <div class="job-name">frontend</div>
+        <div class="steps">
+          <div class="step">npm ci</div>
+          <div class="step">tsc --noEmit（型チェック）</div>
+          <div class="step">biome check（lint）</div>
+          <div class="step">vite build</div>
+          <div class="step">vitest run（ユニットテスト）</div>
+        </div>
+        <div class="job-trigger">Node.js 22 · Vite 6 · Vitest 3</div>
+      </div>
+      <div class="pipeline-job job-e2e">
+        <div class="job-label">Job 3</div>
+        <div class="job-name">e2e</div>
+        <div class="steps">
+          <div class="step">uvicorn 起動（BE）</div>
+          <div class="step">vite preview 起動（FE）</div>
+          <div class="step">wait-on で疎通確認</div>
+          <div class="step">playwright test</div>
+        </div>
+        <div class="job-trigger">Chromium · PR 時のみ</div>
+      </div>
+    </div>
+
+    <div class="prose" style="margin-top: 32px;">
+      <h3>主要な設定ポイント</h3>
+      <ul>
+        <li><code>astral-sh/setup-uv@v8.2.0</code> で uv をセットアップ（<code>uv sync --frozen</code> でロックファイル通りにインストール）</li>
+        <li><code>actions/cache@v5</code> で <code>node_modules</code> と uv の仮想環境をキャッシュ</li>
+        <li>E2E はバックエンドを <code>nohup uvicorn</code>、フロントを <code>nohup vite preview</code> でバックグラウンド起動し、<code>npx wait-on</code> で疎通を待つ</li>
+        <li>全アクションを <code>v5</code> に統一（Node.js 20 非推奨警告を回避）</li>
+      </ul>
+    </div>
+
+    <pre><span class="c"># .github/workflows/ci.yml の骨格</span>
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: <span class="s">actions/checkout@v5</span>
+      - uses: <span class="s">astral-sh/setup-uv@v8.2.0</span>
+      - run: <span class="fn">uv sync --frozen</span>
+      - run: <span class="fn">uv run ruff check .</span>
+      - run: <span class="fn">uv run mypy app</span>
+      - run: <span class="fn">uv run pytest</span>
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: <span class="s">actions/checkout@v5</span>
+      - uses: <span class="s">actions/setup-node@v5</span>
+        with: { node-version: "22" }
+      - run: <span class="fn">npm ci && npx tsc --noEmit && npm run build && npx vitest run</span>
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - <span class="c"># BE と FE をバックグラウンドで起動して Playwright を実行</span>
+      - run: <span class="fn">npx playwright test</span></pre>
+  </div>
+</section>
+
+<!-- ── 04 Testing ── -->
+<section id="testing">
+  <div class="col">
+    <div class="chap-head">
+      <div>
+        <div class="num">04<small>Testing</small></div>
+      </div>
+      <div class="title-block">
+        <div class="kicker">Chapter Four</div>
+        <h2>テスト設計</h2>
+        <p class="lede">VB.net との比較で見る「テストしやすいコード」の原則。</p>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>
+        VB.net プロジェクトでよく見られる課題は、<strong>ビジネスロジックが UI や Excel COM に直接依存していること</strong>です。
+        この構造ではロジック単体でのテストが書けず、「動かして目で確認する」しかなくなります。
+      </p>
+    </div>
+
+    <table class="contrast-table">
+      <thead>
+        <tr>
+          <th>観点</th>
+          <th>VB.net（従来型）</th>
+          <th>このサンプル（TypeScript × Python）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>ロジックの場所</strong></td>
+          <td class="bad">Form クラスや Excel シート関数に直接記述</td>
+          <td class="good"><code>validation.ts</code> / <code>validation.py</code> に分離</td>
+        </tr>
+        <tr>
+          <td><strong>テストの方法</strong></td>
+          <td class="bad">画面を操作して目視確認（自動化困難）</td>
+          <td class="good">純粋関数を直接 call してアサート</td>
+        </tr>
+        <tr>
+          <td><strong>依存</strong></td>
+          <td class="bad">UI フレームワーク・Excel COM・DB が必要</td>
+          <td class="good">フレームワーク依存ゼロ。入力 → 出力のみ</td>
+        </tr>
+        <tr>
+          <td><strong>AI との相性</strong></td>
+          <td class="bad">副作用だらけで AI が生成しにくい</td>
+          <td class="good">純粋関数なので AI が生成・修正しやすい</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>原則：</strong>
+      「テストできない」ではなく「テストしやすい設計になっていない」。
+      ロジックを純粋関数として切り出すだけで、言語を問わず自動テストが書けるようになります。
+    </div>
+
+    <div class="prose">
+      <h3>Python 側のテスト例</h3>
+    </div>
+
+    <pre><span class="c"># tests/test_validation.py</span>
+<span class="k">import</span> pytest
+<span class="k">from</span> app.domain.validation <span class="k">import</span> <span class="fn">validate_address</span>
+<span class="k">from</span> app.models <span class="k">import</span> AddressRequest
+
+<span class="c"># ロジック単体テスト — FastAPI も DB も起動不要</span>
+<span class="k">def</span> <span class="fn">test_valid_address</span>():
+    req = AddressRequest(
+        postal_code=<span class="s">"123-4567"</span>, prefecture=<span class="s">"東京都"</span>,
+        city=<span class="s">"渋谷区"</span>, street_address=<span class="s">"1-2-3"</span>
+    )
+    assert <span class="fn">validate_address</span>(req) == []
+
+@pytest.mark.parametrize(<span class="s">"code"</span>, [<span class="s">"1234567"</span>, <span class="s">"abc-defg"</span>, <span class="s">""</span>])
+<span class="k">def</span> <span class="fn">test_invalid_postal_code</span>(code):
+    req = AddressRequest(postal_code=code, prefecture=<span class="s">"東京都"</span>,
+                         city=<span class="s">"渋谷区"</span>, street_address=<span class="s">"1-2-3"</span>)
+    errors = <span class="fn">validate_address</span>(req)
+    assert any(e.field == <span class="s">"postal_code"</span> <span class="k">for</span> e <span class="k">in</span> errors)</pre>
+
+    <div class="prose">
+      <h3>TypeScript 側のテスト例</h3>
+    </div>
+
+    <pre><span class="c">// validation.test.ts</span>
+<span class="k">import</span> { z } <span class="k">from</span> <span class="s">"zod"</span>
+<span class="k">import</span> { addressSchema } <span class="k">from</span> <span class="s">"./validation"</span>
+
+<span class="c">// React も Vite も起動不要 — スキーマを直接 safeParse</span>
+<span class="fn">test</span>(<span class="s">"正しい住所はパスする"</span>, () => {
+  expect(addressSchema.<span class="fn">safeParse</span>(validData).success).<span class="fn">toBe</span>(<span class="k">true</span>)
+})
+
+<span class="fn">test</span>(<span class="s">"郵便番号が不正な形式"</span>, () => {
+  <span class="k">const</span> result = addressSchema.<span class="fn">safeParse</span>({ ...validData, postalCode: <span class="s">"1234567"</span> })
+  expect(result.success).<span class="fn">toBe</span>(<span class="k">false</span>)
+  <span class="k">if</span> (!result.success) {
+    expect(z.<span class="fn">flattenError</span>(result.error).fieldErrors.postalCode).<span class="fn">toBeDefined</span>()
+  }
+})</pre>
+
+    <div class="prose" style="padding-bottom: 80px;">
+      <h3>E2E との役割分担</h3>
+      <ul>
+        <li><strong>純粋関数テスト（Vitest / pytest）</strong>：ロジックの網羅的な検証。速く、環境依存ゼロ。</li>
+        <li><strong>E2E テスト（Playwright）</strong>：「実際にブラウザで操作したときに動くか」の確認。画面遷移・エラー表示・ボタン操作をカバー。</li>
+      </ul>
+      <p>
+        2 層にすることで、「ロジックが壊れているのか」「画面の繋ぎが壊れているのか」を素早く切り分けられます。
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+  function setActive(el) {
+    document.querySelectorAll('nav.page-switch a').forEach(a => a.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // TOC のスクロール追従
+  const sections = document.querySelectorAll('section[id]');
+  const tocLinks = document.querySelectorAll('nav.toc a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        tocLinks.forEach(a => {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

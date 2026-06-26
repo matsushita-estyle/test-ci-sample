@@ -14,7 +14,7 @@ TypeScript（フロントエンド）と Python（バックエンド）の組み
 | **ruff** | Python の lint / format |
 | **mypy** | Python の型チェック |
 | **pytest** | Python のユニットテスト |
-| **GitHub Actions** | PR・push で上記をすべて自動実行 |
+| **GitHub Actions** | PR 時に上記をすべて自動実行 |
 
 ### テスタビリティの設計ポイント
 
@@ -86,7 +86,7 @@ npm run e2e
 
 ## CI パイプライン
 
-GitHub Actions で PR・push のたびに以下の 3 ジョブが並列実行されます。
+GitHub Actions で PR 時に以下の 3 ジョブが並列実行されます。
 
 ```
 backend  ── ruff check → ruff format --check → mypy → pytest
