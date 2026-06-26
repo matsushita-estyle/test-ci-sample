@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { submitAddress } from "./api";
 import type { AddressFormData, FieldError } from "./validation";
 import { validateAddress } from "./validation";
-import { submitAddress } from "./api";
 
 type Props = {
   onComplete: (address: AddressFormData) => void;
@@ -41,7 +41,12 @@ export function AddressForm({ onComplete }: Props) {
       if (res.valid) {
         onComplete(form);
       } else {
-        setErrors(res.errors.map((e) => ({ field: e.field as keyof AddressFormData, message: e.message })));
+        setErrors(
+          res.errors.map((e) => ({
+            field: e.field as keyof AddressFormData,
+            message: e.message,
+          })),
+        );
       }
     } finally {
       setSubmitting(false);
@@ -49,67 +54,90 @@ export function AddressForm({ onComplete }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} aria-label="住所入力フォーム">
-      <h1>住所を入力してください</h1>
+    <div className="card">
+      <h1 className="card-title">住所入力</h1>
+      <p className="card-subtitle">フォームに住所を入力して送信してください</p>
 
-      <div>
-        <label htmlFor="postalCode">郵便番号（例: 123-4567）</label>
-        <input
-          id="postalCode"
-          name="postalCode"
-          value={form.postalCode}
-          onChange={handleChange}
-          placeholder="123-4567"
-        />
-        {errorFor("postalCode") && <span role="alert">{errorFor("postalCode")}</span>}
-      </div>
+      <form onSubmit={handleSubmit} aria-label="住所入力フォーム">
+        <div className="field">
+          <label htmlFor="postalCode">郵便番号</label>
+          <input
+            id="postalCode"
+            name="postalCode"
+            value={form.postalCode}
+            onChange={handleChange}
+            placeholder="123-4567"
+          />
+          {errorFor("postalCode") && (
+            <span className="field-error" role="alert">
+              {errorFor("postalCode")}
+            </span>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="prefecture">都道府県</label>
-        <input
-          id="prefecture"
-          name="prefecture"
-          value={form.prefecture}
-          onChange={handleChange}
-        />
-        {errorFor("prefecture") && <span role="alert">{errorFor("prefecture")}</span>}
-      </div>
+        <div className="field">
+          <label htmlFor="prefecture">都道府県</label>
+          <input
+            id="prefecture"
+            name="prefecture"
+            value={form.prefecture}
+            onChange={handleChange}
+            placeholder="東京都"
+          />
+          {errorFor("prefecture") && (
+            <span className="field-error" role="alert">
+              {errorFor("prefecture")}
+            </span>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="city">市区町村</label>
-        <input
-          id="city"
-          name="city"
-          value={form.city}
-          onChange={handleChange}
-        />
-        {errorFor("city") && <span role="alert">{errorFor("city")}</span>}
-      </div>
+        <div className="field">
+          <label htmlFor="city">市区町村</label>
+          <input
+            id="city"
+            name="city"
+            value={form.city}
+            onChange={handleChange}
+            placeholder="渋谷区"
+          />
+          {errorFor("city") && (
+            <span className="field-error" role="alert">
+              {errorFor("city")}
+            </span>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="streetAddress">番地</label>
-        <input
-          id="streetAddress"
-          name="streetAddress"
-          value={form.streetAddress}
-          onChange={handleChange}
-        />
-        {errorFor("streetAddress") && <span role="alert">{errorFor("streetAddress")}</span>}
-      </div>
+        <div className="field">
+          <label htmlFor="streetAddress">番地</label>
+          <input
+            id="streetAddress"
+            name="streetAddress"
+            value={form.streetAddress}
+            onChange={handleChange}
+            placeholder="1-2-3"
+          />
+          {errorFor("streetAddress") && (
+            <span className="field-error" role="alert">
+              {errorFor("streetAddress")}
+            </span>
+          )}
+        </div>
 
-      <div>
-        <label htmlFor="buildingName">建物名（任意）</label>
-        <input
-          id="buildingName"
-          name="buildingName"
-          value={form.buildingName}
-          onChange={handleChange}
-        />
-      </div>
+        <div className="field">
+          <label htmlFor="buildingName">建物名（任意）</label>
+          <input
+            id="buildingName"
+            name="buildingName"
+            value={form.buildingName}
+            onChange={handleChange}
+            placeholder="○○ビル 3F"
+          />
+        </div>
 
-      <button type="submit" disabled={submitting}>
-        {submitting ? "送信中..." : "送信する"}
-      </button>
-    </form>
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? "送信中..." : "送信する"}
+        </button>
+      </form>
+    </div>
   );
 }
