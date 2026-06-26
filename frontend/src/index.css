@@ -36,27 +36,44 @@ body {
 .card {
   background: var(--card);
   border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 52px 64px;
+  border-radius: 10px;
   width: 100%;
-  max-width: 860px;
-  box-shadow: 0 2px 12px rgba(28, 26, 22, 0.06);
+  max-width: 960px;
+  box-shadow: 0 2px 16px rgba(28, 26, 22, 0.08);
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  overflow: hidden;
+}
+
+/* 左パネル */
+.card-left {
+  background: var(--paper-2);
+  border-right: 1px solid var(--rule);
+  padding: 56px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 右パネル */
+.card-right {
+  padding: 56px 52px;
 }
 
 .card-title {
   font-family: var(--serif);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--ink);
-  margin-bottom: 6px;
+  margin-bottom: 12px;
+  line-height: 1.4;
 }
 
 .card-subtitle {
   font-size: 13px;
   color: var(--mute);
-  margin-bottom: 28px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--rule);
+  line-height: 1.8;
+  margin-bottom: 0;
 }
 
 .form-grid {
