@@ -11,7 +11,6 @@
   --rule-strong: #c4bba2;
   --accent: #b34a26;
   --accent-deep: #8a3617;
-  --accent-soft: #f1d9c8;
   --accent-tint: #fbede2;
   --serif: "Noto Serif JP", "Yu Mincho", Georgia, serif;
   --sans: "Inter", "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif;
@@ -73,7 +72,6 @@ body {
   font-size: 13px;
   color: var(--mute);
   line-height: 1.8;
-  margin-bottom: 0;
 }
 
 .form-grid {
