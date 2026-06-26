@@ -2,7 +2,7 @@
 name = "backend"
 version = "0.0.0"
 description = "Address validation API"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
@@ -24,13 +24,13 @@ package = false
 [tool.ruff]
 src = ["app", "tests"]
 line-length = 100
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = false
 ignore_missing_imports = true
 files = ["app"]
